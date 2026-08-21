@@ -1,0 +1,13 @@
+### Get list of observatoires
+GET http://localhost:8080/api/observatoires
+
+### Get observatoire by id
+GET http://localhost:8080/api/observatoires/2
+
+### Create observatoire
+POST http://localhost:8080/api/observatoires
+Content-Type: application/json
+###
+#{ "nom": "Observatoire du Pic du Midi", "pays": "France", "altitudeM": 2877 }
+#{ "nom": "Green Bank Telescope", "pays": "États-Unis", "altitudeM": 807 }
+#{ "nom": "Observatoire du Teide", "pays": "Espagne", "altitudeM": 2390 }
