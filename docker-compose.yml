@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: exoplanetes-db
+    environment:
+      POSTGRES_DB: exoplanetes
+      POSTGRES_USER: exo
+      POSTGRES_PASSWORD: exo
+    ports:
+      - "5432:5432"
+    volumes:
+      - exoplanetes-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U exo -d exoplanetes"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  exoplanetes-pgdata:
