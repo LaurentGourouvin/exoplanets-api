@@ -2,6 +2,7 @@ package com.example.exoplanetes.controllers;
 
 import com.example.exoplanetes.dto.CreateExoplaneteRequest;
 import com.example.exoplanetes.dto.ExoplaneteResponse;
+import com.example.exoplanetes.dto.UpdateExoplaneteDto;
 import com.example.exoplanetes.services.ExoplaneteService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -45,5 +46,11 @@ public class ExoplaneteController {
                                                          @RequestParam(defaultValue = "20") int size) {
         Page<ExoplaneteResponse> exoplanetes = this.exoplaneteService.getList(observatoireId, page, size);
         return ResponseEntity.ok(exoplanetes);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<ExoplaneteResponse> update(@PathVariable Long id, @Valid @RequestBody UpdateExoplaneteDto request) {
+        ExoplaneteResponse exoplaneteUpdated = this.exoplaneteService.update(id, request);
+        return ResponseEntity.ok(exoplaneteUpdated);
     }
 }
