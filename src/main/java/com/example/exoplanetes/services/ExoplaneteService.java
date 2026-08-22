@@ -5,6 +5,7 @@ import com.example.exoplanetes.dto.ExoplaneteResponse;
 import com.example.exoplanetes.entities.Exoplanete;
 import com.example.exoplanetes.entities.Observatoire;
 import com.example.exoplanetes.enums.Statut;
+import com.example.exoplanetes.exceptions.ExoplaneteNotFound;
 import com.example.exoplanetes.exceptions.ObservatoireNotFound;
 import com.example.exoplanetes.repositories.ExoplaneteRepository;
 import com.example.exoplanetes.repositories.ObservatoireRepository;
@@ -44,6 +45,12 @@ public class ExoplaneteService {
     @Transactional
     public ExoplaneteResponse create(CreateExoplaneteRequest data) {
         Exoplanete exoplanete = this.exoplaneteRepository.save(fromCreateExoplaneteRequestToEntity(data));
+        return toResponse(exoplanete);
+    }
+
+    @Transactional(readOnly = true)
+    public ExoplaneteResponse getById(Long id) {
+        Exoplanete exoplanete = this.exoplaneteRepository.findById(id).orElseThrow(() -> new ExoplaneteNotFound("Exoplanete not found with id " + id));
         return toResponse(exoplanete);
     }
 }
