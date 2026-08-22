@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
@@ -37,8 +38,12 @@ public class ObservatoireController {
     @PostMapping
     public ResponseEntity<ObservatoireResponse> createObservatoire(@RequestBody @Valid CreateObservatoireRequest request) {
         ObservatoireResponse observatoire = this.observatoireService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .location(URI.create("/api/observatoire/"+observatoire.id()))
-                .body(observatoire);
+
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(observatoire.id())
+                .toUri();
+
+        return ResponseEntity.created(location).body(observatoire);
     }
 }
