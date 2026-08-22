@@ -22,3 +22,9 @@ Content-Type: application/json
 
 ### Delete exoplanete
 DELETE http://localhost:8080/api/exoplanetes/8
+
+### Confrim exoplanete
+POST http://localhost:8080/api/exoplanetes/999/confirm
+
+### Reject exoplanete
+POST http://localhost:8080/api/exoplanetes/1/reject

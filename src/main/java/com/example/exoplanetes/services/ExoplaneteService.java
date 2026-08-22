@@ -8,6 +8,7 @@ import com.example.exoplanetes.entities.Observatoire;
 import com.example.exoplanetes.enums.Statut;
 import com.example.exoplanetes.exceptions.DesignationAlreadyExistsException;
 import com.example.exoplanetes.exceptions.ExoplaneteNotFound;
+import com.example.exoplanetes.exceptions.IllegalStatutTransitionException;
 import com.example.exoplanetes.exceptions.ObservatoireNotFound;
 import com.example.exoplanetes.repositories.ExoplaneteRepository;
 import com.example.exoplanetes.repositories.ObservatoireRepository;
@@ -113,5 +114,28 @@ public class ExoplaneteService {
                 .orElseThrow(() -> new ExoplaneteNotFound("Exoplanete not found"));
 
         this.exoplaneteRepository.delete(exoplanete);
+    }
+
+    private ExoplaneteResponse transitionStatut(Long id, Statut cible) {
+        Exoplanete exoplanete = this.exoplaneteRepository.findById(id)
+                .orElseThrow(() -> new ExoplaneteNotFound("Exoplanete not found"));
+
+        if (exoplanete.getStatut() != Statut.CANDIDATE) {
+            throw new IllegalStatutTransitionException(
+                    "Only a candidate exoplanet can be " + (cible == Statut.CONFIRMEE ? "confirmed" : "rejected"));
+        }
+
+        exoplanete.setStatut(cible);
+        return toResponse(exoplanete);
+    }
+
+    @Transactional
+    public ExoplaneteResponse confirm(Long id) {
+        return transitionStatut(id, Statut.CONFIRMEE);
+    }
+
+    @Transactional
+    public ExoplaneteResponse reject(Long id) {
+        return transitionStatut(id, Statut.REJETEE);
     }
 }
