@@ -50,4 +50,9 @@ public class GlobalHandler extends ResponseEntityExceptionHandler {
         problemDetail.setProperty("errors", mapField);
         return handleExceptionInternal(ex, problemDetail, headers, status, request);
     }
+
+    @ExceptionHandler(Exception.class)
+    public ProblemDetail handleDefaultException(Exception e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "An internal error has occurred");
+    }
 }
