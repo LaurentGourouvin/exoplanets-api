@@ -7,3 +7,9 @@ Content-Type: application/json
 
 ### Get exoplanete by id
 GET http://localhost:8080/api/exoplanetes/2
+
+### Get exoplantes
+GET http://localhost:8080/api/exoplanetes
+
+### Get exoplanete with queries params
+GET http://localhost:8080/api/exoplanetes?observatoireId=2&page=0&size=1

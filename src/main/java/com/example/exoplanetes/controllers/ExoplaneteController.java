@@ -4,12 +4,13 @@ import com.example.exoplanetes.dto.CreateExoplaneteRequest;
 import com.example.exoplanetes.dto.ExoplaneteResponse;
 import com.example.exoplanetes.services.ExoplaneteService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/exoplanetes")
@@ -36,5 +37,13 @@ public class ExoplaneteController {
     public ResponseEntity<ExoplaneteResponse> getById(@PathVariable Long id) {
         ExoplaneteResponse exoplanete = this.exoplaneteService.getById(id);
         return ResponseEntity.ok(exoplanete);
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<ExoplaneteResponse>> list(@RequestParam(required = false) Long observatoireId,
+                                                         @RequestParam(defaultValue = "0") int page,
+                                                         @RequestParam(defaultValue = "20") int size) {
+        Page<ExoplaneteResponse> exoplanetes = this.exoplaneteService.getList(observatoireId, page, size);
+        return ResponseEntity.ok(exoplanetes);
     }
 }
