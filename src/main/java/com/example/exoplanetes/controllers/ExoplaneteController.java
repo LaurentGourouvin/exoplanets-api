@@ -3,6 +3,7 @@ package com.example.exoplanetes.controllers;
 import com.example.exoplanetes.dto.CreateExoplaneteRequest;
 import com.example.exoplanetes.dto.ExoplaneteResponse;
 import com.example.exoplanetes.dto.UpdateExoplaneteDto;
+import com.example.exoplanetes.entities.Exoplanete;
 import com.example.exoplanetes.services.ExoplaneteService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -58,5 +59,17 @@ public class ExoplaneteController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         this.exoplaneteService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/confirm")
+    public ResponseEntity<ExoplaneteResponse> confirmExoplanete(@PathVariable Long id) {
+        ExoplaneteResponse exoplanete = this.exoplaneteService.confirm(id);
+        return ResponseEntity.ok(exoplanete);
+    }
+
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<ExoplaneteResponse> rejectExoplanete(@PathVariable Long id) {
+        ExoplaneteResponse exoplanete = this.exoplaneteService.reject(id);
+        return ResponseEntity.ok(exoplanete);
     }
 }
