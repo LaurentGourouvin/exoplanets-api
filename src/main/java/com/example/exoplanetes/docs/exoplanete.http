@@ -1,0 +1,5 @@
+### Create exoplanete
+POST http://localhost:8080/api/exoplanetes
+Content-Type: application/json
+
+{ "designation": "HD 189733 b", "masseTerre": 363.0, "distanceAl": 64.5, "observatoireId": 4 }
