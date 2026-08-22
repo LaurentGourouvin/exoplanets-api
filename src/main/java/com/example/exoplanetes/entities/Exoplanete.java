@@ -32,7 +32,9 @@ public class Exoplanete {
     @Version
     private Long version;
 
-    public Exoplanete() {}
+    public Exoplanete() {
+        //Empty constructor for JPA
+    }
 
     public Long getId() {
         return id;
