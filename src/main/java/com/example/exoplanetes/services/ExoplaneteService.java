@@ -58,7 +58,7 @@ public class ExoplaneteService {
 
     @Transactional(readOnly = true)
     public ExoplaneteResponse getById(Long id) {
-        Exoplanete exoplanete = this.exoplaneteRepository.findById(id).orElseThrow(() -> new ExoplaneteNotFound("Exoplanete not found with id " + id));
+        Exoplanete exoplanete = this.exoplaneteRepository.findById(id).orElseThrow(() -> new ExoplaneteNotFound(id));
         return toResponse(exoplanete);
     }
 
@@ -80,7 +80,7 @@ public class ExoplaneteService {
     @Transactional
     public ExoplaneteResponse update(Long id, UpdateExoplaneteDto request) {
         Exoplanete exoplanete = this.exoplaneteRepository.findById(id)
-                .orElseThrow(() -> new ExoplaneteNotFound("Exoplanete not found"));
+                .orElseThrow(() -> new ExoplaneteNotFound(id));
 
         if (request.designation() != null) {
             boolean designationExists = this.exoplaneteRepository.existsByDesignationAndIdNot(request.designation(), id);
@@ -111,14 +111,14 @@ public class ExoplaneteService {
     @Transactional
     public void delete(Long id) {
         Exoplanete exoplanete = this.exoplaneteRepository.findById(id)
-                .orElseThrow(() -> new ExoplaneteNotFound("Exoplanete not found"));
+                .orElseThrow(() -> new ExoplaneteNotFound(id));
 
         this.exoplaneteRepository.delete(exoplanete);
     }
 
     private ExoplaneteResponse transitionStatut(Long id, Statut cible) {
         Exoplanete exoplanete = this.exoplaneteRepository.findById(id)
-                .orElseThrow(() -> new ExoplaneteNotFound("Exoplanete not found"));
+                .orElseThrow(() -> new ExoplaneteNotFound(id));
 
         if (exoplanete.getStatut() != Statut.CANDIDATE) {
             throw new IllegalStatutTransitionException(
