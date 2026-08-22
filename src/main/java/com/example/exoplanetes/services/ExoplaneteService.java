@@ -2,9 +2,11 @@ package com.example.exoplanetes.services;
 
 import com.example.exoplanetes.dto.CreateExoplaneteRequest;
 import com.example.exoplanetes.dto.ExoplaneteResponse;
+import com.example.exoplanetes.dto.UpdateExoplaneteDto;
 import com.example.exoplanetes.entities.Exoplanete;
 import com.example.exoplanetes.entities.Observatoire;
 import com.example.exoplanetes.enums.Statut;
+import com.example.exoplanetes.exceptions.DesignationAlreadyExistsException;
 import com.example.exoplanetes.exceptions.ExoplaneteNotFound;
 import com.example.exoplanetes.exceptions.ObservatoireNotFound;
 import com.example.exoplanetes.repositories.ExoplaneteRepository;
@@ -72,5 +74,36 @@ public class ExoplaneteService {
         }
 
         return find.map(this::toResponse);
+    }
+
+    @Transactional
+    public ExoplaneteResponse update(Long id, UpdateExoplaneteDto request) {
+        Exoplanete exoplanete = this.exoplaneteRepository.findById(id)
+                .orElseThrow(() -> new ExoplaneteNotFound("Exoplanete not found"));
+
+        if (request.designation() != null) {
+            boolean designationExists = this.exoplaneteRepository.existsByDesignationAndIdNot(request.designation(), id);
+            if (designationExists) {
+                throw new DesignationAlreadyExistsException("Designation already exist");
+            }
+            exoplanete.setDesignation(request.designation());
+        }
+
+        if (request.observatoireId() != null) {
+            Observatoire observatoire = this.observatoireRepository.findById(request.observatoireId())
+                    .orElseThrow(() -> new ObservatoireNotFound("Observatoire not found"));
+
+            exoplanete.setObservatoire(observatoire);
+        }
+
+        if (request.masseTerre() != null) {
+            exoplanete.setMasseTerre(request.masseTerre());
+        }
+
+        if (request.distanceAl() != null) {
+            exoplanete.setDistanceAl(request.distanceAl());
+        }
+
+        return toResponse(exoplanete);
     }
 }

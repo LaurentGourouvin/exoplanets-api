@@ -1,5 +1,6 @@
 package com.example.exoplanetes.handlers;
 
+import com.example.exoplanetes.exceptions.DesignationAlreadyExistsException;
 import com.example.exoplanetes.exceptions.NotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
@@ -27,6 +28,11 @@ public class GlobalHandler extends ResponseEntityExceptionHandler {
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, "This resource already exist.");
     }
 
+    @ExceptionHandler(DesignationAlreadyExistsException.class)
+    public ProblemDetail designationConflict(DesignationAlreadyExistsException e) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
+    }
+
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
                                                                   HttpHeaders headers,
@@ -37,7 +43,7 @@ public class GlobalHandler extends ResponseEntityExceptionHandler {
         List<FieldError> fields = ex.getBindingResult().getFieldErrors();
         Map<String, String> mapField = new HashMap<>();
 
-        for(FieldError field : fields) {
+        for (FieldError field : fields) {
             mapField.put(field.getField(), field.getDefaultMessage());
         }
 
