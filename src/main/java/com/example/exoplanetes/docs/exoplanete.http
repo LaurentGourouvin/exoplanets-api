@@ -6,7 +6,7 @@ Content-Type: application/json
 
 
 ### Get exoplanete by id
-GET http://localhost:8080/api/exoplanetes/1
+GET http://localhost:8080/api/exoplanetes/8
 
 ### Get exoplantes
 GET http://localhost:8080/api/exoplanetes
@@ -19,3 +19,6 @@ PATCH http://localhost:8080/api/exoplanetes/1
 Content-Type: application/json
 
 {"designation": "TRAPPIST-1e"}
+
+### Delete exoplanete
+DELETE http://localhost:8080/api/exoplanetes/8
