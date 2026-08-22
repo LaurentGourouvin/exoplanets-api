@@ -1,165 +1,139 @@
-# Exoplanètes API — exercice REST (Java / Spring Boot / JPA-Hibernate)
+# 🔭 Exoplanètes API
 
-Exercice d'entraînement : construire **from scratch** une API REST en couches
-`Controller → Service → Repository`, accès aux données via **JPA/Hibernate**
-(pas de JdbcTemplate), schéma géré par **Flyway**.
+API REST de gestion d'observatoires astronomiques et d'exoplanètes, construite avec **Java 21** et **Spring Boot 3**. Architecture en couches, persistance via **JPA/Hibernate**, migrations **Flyway**, documentation **OpenAPI/Swagger**.
 
-> Ce dépôt ne contient **que l'infrastructure** : Docker, `pom.xml`, migrations
-> Flyway, squelette Spring Boot, énoncé. Tout le code Java métier (entités,
-> repositories, services, controllers, DTO, exceptions, gestion d'erreur) est
-> **à écrire par toi**. L'énoncé détaillé est dans [`ENONCE.md`](./ENONCE.md).
+> Projet réalisé pour approfondir la maîtrise de Spring Boot et de JPA/Hibernate : mapping de relations, dirty checking, gestion de la concurrence, gestion d'erreur normalisée.
 
-## Domaine
+## Sommaire
 
-Un **observatoire** (`Observatoire`) découvre plusieurs **exoplanètes**
-(`Exoplanete`). Relation **N–1** : une exoplanète appartient à un observatoire.
+- [Aperçu](#aperçu)
+- [Stack technique](#stack-technique)
+- [Domaine métier](#domaine-métier)
+- [Fonctionnalités](#fonctionnalités)
+- [Démarrage rapide](#démarrage-rapide)
+- [Documentation de l'API](#documentation-de-lapi)
+- [Points techniques notables](#points-techniques-notables)
+- [Architecture](#architecture)
 
-| Table         | Champs clés |
-|---------------|-------------|
+## Aperçu
+
+Cette API expose un CRUD complet sur deux ressources liées par une relation N–1 (une exoplanète appartient à un observatoire), avec pagination, filtrage, mise à jour partielle, transitions de statut métier et gestion optimiste de la concurrence. Toutes les erreurs sont renvoyées au format **RFC 7807 (ProblemDetail)**.
+
+## Stack technique
+
+| Domaine | Technologies |
+|---|---|
+| Langage | Java 21 |
+| Framework | Spring Boot 3.3 (Web, Data JPA, Validation) |
+| Persistance | Hibernate, PostgreSQL 16 |
+| Migrations | Flyway |
+| Documentation | springdoc-openapi (Swagger UI) |
+| Tests | JUnit 5, Testcontainers |
+| Build | Maven |
+| Qualité | SonarCloud |
+
+## Domaine métier
+
+Un **observatoire** découvre plusieurs **exoplanètes**. Chaque exoplanète suit un cycle de vie : `CANDIDATE` → `CONFIRMEE` ou `REJETEE`.
+
+| Table | Champs clés |
+|---|---|
 | `observatoire` | `id`, `nom` (unique), `pays`, `altitude_m` |
-| `exoplanete`   | `id`, `designation` (unique), `masse_terre`, `distance_al`, `statut` (`CANDIDATE`/`CONFIRMEE`/`REJETEE`), `observatoire_id` (FK), `version` (verrou optimiste) |
+| `exoplanete` | `id`, `designation` (unique), `masse_terre`, `distance_al`, `statut`, `observatoire_id` (FK), `version` (verrou optimiste) |
 
-## Pré-requis
+## Fonctionnalités
 
-- Java 21+ (le wrapper `./mvnw` télécharge Maven tout seul au 1er lancement)
-- Docker + Docker Compose
-- Un daemon Docker qui tourne (aussi utilisé par Testcontainers pour les tests)
+- **CRUD complet** sur les exoplanètes et les observatoires
+- **Filtrage** par observatoire et **pagination** (`?observatoireId=&page=&size=`)
+- **Mise à jour partielle** (PATCH) via le dirty checking d'Hibernate
+- **Transitions de statut** métier (`/confirm`, `/reject`) avec règles de validation
+- **Verrouillage optimiste** (`@Version`) contre les modifications concurrentes
+- **Gestion d'erreur centralisée** (RFC 7807) : `400` / `404` / `409` / `422` / `500`
+- **Validation** des entrées (Bean Validation)
+- **Documentation interactive** OpenAPI / Swagger UI
 
-## 1. Lancer la base PostgreSQL (Docker)
+## Démarrage rapide
+
+### Pré-requis
+- Java 21+
+- Docker (pour PostgreSQL et Testcontainers)
+
+### Lancer
 
 ```bash
+# 1. Démarrer PostgreSQL
 docker compose up -d
-# vérifier l'état (attendre "healthy")
-docker compose ps
-```
 
-La base écoute sur `localhost:5432` (`exoplanetes` / `exo` / `exo`).
-
-Pour tout remettre à zéro (supprime le volume et donc les données) :
-
-```bash
-docker compose down -v
-```
-
-## 2. Migrations Flyway
-
-Tu n'as **rien à lancer manuellement** : Flyway joue automatiquement
-`src/main/resources/db/migration/V1__init_schema.sql` puis `V2__seed_data.sql`
-au démarrage de l'application. Le schéma et un jeu de données de test sont donc
-créés au premier `./mvnw spring-boot:run`.
-
-Vérifier après coup :
-
-```bash
-docker exec -it exoplanetes-db psql -U exo -d exoplanetes -c "\dt"
-docker exec -it exoplanetes-db psql -U exo -d exoplanetes -c "SELECT * FROM exoplanete;"
-```
-
-## 3. Lancer l'application
-
-```bash
+# 2. Lancer l'application (Flyway crée le schéma + un jeu de données)
 ./mvnw spring-boot:run
 ```
 
-> Tant que tu n'as écrit aucun `@RestController`, l'appli démarre mais n'expose
-> aucun endpoint métier (les `curl` ci-dessous renverront 404 tant que tu n'as
-> pas codé les controllers — c'est normal, c'est le but de l'exercice).
+L'API est disponible sur `http://localhost:8080`.
 
-## 4. Lancer les tests
+### Tester
 
 ```bash
 ./mvnw test
 ```
 
-Le test `contextLoads` démarre un PostgreSQL éphémère via **Testcontainers**
-(daemon Docker requis, mais `docker compose up` **pas** nécessaire), joue les
-migrations, puis Hibernate **valide** tes entités contre le schéma.
+Les tests d'intégration démarrent un PostgreSQL éphémère via Testcontainers (aucune base à installer, seul un daemon Docker est requis).
 
-## 5. Exemples curl (cibles à faire passer)
+## Documentation de l'API
 
-Ces commandes décrivent le comportement **attendu** une fois l'API codée.
+Une fois l'application lancée :
 
-### Observatoires
+- **Swagger UI** : http://localhost:8080/swagger-ui/index.html
+- **Spécification OpenAPI (JSON)** : http://localhost:8080/v3/api-docs
+
+### Principaux endpoints
+
+| Méthode | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/exoplanetes` | Lister (filtrable, paginé) |
+| `GET` | `/api/exoplanetes/{id}` | Consulter |
+| `POST` | `/api/exoplanetes` | Créer |
+| `PATCH` | `/api/exoplanetes/{id}` | Mise à jour partielle |
+| `DELETE` | `/api/exoplanetes/{id}` | Supprimer |
+| `POST` | `/api/exoplanetes/{id}/confirm` | Confirmer une candidate |
+| `POST` | `/api/exoplanetes/{id}/reject` | Rejeter une candidate |
+| `GET` | `/api/observatoires` | Lister |
+| `GET` | `/api/observatoires/{id}` | Consulter |
+| `POST` | `/api/observatoires` | Créer |
+
+### Exemple
+
 ```bash
-# Lister
-curl -s http://localhost:8080/api/observatoires | jq
-
-# Consulter par id
-curl -s http://localhost:8080/api/observatoires/1 | jq
-
-# Créer -> 201 + header Location
-curl -i -X POST http://localhost:8080/api/observatoires \
-  -H 'Content-Type: application/json' \
-  -d '{"nom":"Observatoire de Nice","pays":"France","altitudeM":372}'
-```
-
-### Exoplanètes
-```bash
-# Lister (toutes)
-curl -s http://localhost:8080/api/exoplanetes | jq
-
-# Filtrer par observatoire (clé étrangère)
-curl -s 'http://localhost:8080/api/exoplanetes?observatoireId=2' | jq
-
-# Pagination
-curl -s 'http://localhost:8080/api/exoplanetes?page=0&size=3' | jq
-
-# Consulter par id (404 si absent)
-curl -i http://localhost:8080/api/exoplanetes/1
-curl -i http://localhost:8080/api/exoplanetes/99999   # -> 404 ProblemDetail
-
-# Créer -> 201 + Location
+# Créer une exoplanète (201 + header Location)
 curl -i -X POST http://localhost:8080/api/exoplanetes \
   -H 'Content-Type: application/json' \
   -d '{"designation":"HD 189733 b","masseTerre":363.0,"distanceAl":64.5,"observatoireId":4}'
-
-# Validation KO -> 400
-curl -i -X POST http://localhost:8080/api/exoplanetes \
-  -H 'Content-Type: application/json' \
-  -d '{"designation":"","masseTerre":-1,"distanceAl":0,"observatoireId":4}'
-
-# Observatoire inexistant -> 404
-curl -i -X POST http://localhost:8080/api/exoplanetes \
-  -H 'Content-Type: application/json' \
-  -d '{"designation":"WASP-12b","masseTerre":439.0,"distanceAl":1410.0,"observatoireId":9999}'
-
-# Désignation déjà prise -> 409
-curl -i -X POST http://localhost:8080/api/exoplanetes \
-  -H 'Content-Type: application/json' \
-  -d '{"designation":"TRAPPIST-1e","masseTerre":0.7,"distanceAl":40.7,"observatoireId":2}'
-
-# Mise à jour partielle PATCH
-curl -i -X PATCH http://localhost:8080/api/exoplanetes/1 \
-  -H 'Content-Type: application/json' \
-  -d '{"distanceAl":4.25}'
-
-# Endpoint métier : confirmer une candidate (CANDIDATE -> CONFIRMEE)
-curl -i -X POST http://localhost:8080/api/exoplanetes/7/confirmer
-
-# Supprimer -> 204 (404 si absent)
-curl -i -X DELETE http://localhost:8080/api/exoplanetes/8
 ```
 
-## Arborescence
+## Points techniques notables
 
-```
-exoplanetes-api/
-├── docker-compose.yml
-├── pom.xml
-├── mvnw / mvnw.cmd / .mvn/wrapper/
-├── README.md
-├── ENONCE.md
-└── src/
-    ├── main/
-    │   ├── java/com/example/exoplanetes/
-    │   │   └── ExoplanetesApplication.java   <- fourni
-    │   │   (à toi : entity/ repository/ service/ web/ dto/ exception/ ...)
-    │   └── resources/
-    │       ├── application.properties
-    │       └── db/migration/
-    │           ├── V1__init_schema.sql
-    │           └── V2__seed_data.sql
-    └── test/
-        └── java/com/example/exoplanetes/
-            └── ExoplanetesApplicationTests.java   <- contextLoads (fourni)
-```
+Quelques choix d'implémentation représentatifs du projet :
+
+- **Séparation stricte entité / DTO** : les entités JPA ne sont jamais exposées en JSON ; des records DTO dédiés servent en entrée et en sortie.
+- **Mise à jour partielle par dirty checking** : le PATCH charge l'entité managée dans une transaction et laisse Hibernate générer l'`UPDATE`, sans SQL manuel.
+- **Concurrence** : le verrouillage optimiste (`@Version`) détecte les modifications concurrentes et renvoie un `409`.
+- **Transitions d'état** : les changements de statut passent par des endpoints métier dédiés qui valident les transitions autorisées (approche liste blanche), plutôt que par une modification de champ libre.
+- **Erreurs normalisées** : un `@RestControllerAdvice` unique traduit les exceptions en `ProblemDetail` (RFC 7807), sans fuite de stack trace.
+- **Schéma piloté par Flyway** avec `ddl-auto=validate` : Hibernate valide les entités contre le schéma mais ne le modifie jamais.
+
+## Architecture
+
+Découpage en couches, injection par constructeur, transactions gérées au niveau service.
+
+**Controller → Service → Repository → PostgreSQL**
+
+- **Controller** : expose les endpoints REST, valide les entrées, ne contient aucune logique métier.
+- **Service** : logique métier, transactions (`@Transactional`, `readOnly` sur les lectures), mapping entité ↔ DTO.
+- **Repository** : accès aux données via Spring Data JPA.
+
+Configuration notable : `open-in-view=false` (session Hibernate fermée hors transaction) et `ddl-auto=validate` (le schéma est piloté uniquement par Flyway).
+
+## Roadmap
+
+- [ ] Tests d'intégration complets (endpoints)
+- [ ] Déploiement (Docker + AWS Lightsail)
+- [ ] Internationalisation des messages de validation
