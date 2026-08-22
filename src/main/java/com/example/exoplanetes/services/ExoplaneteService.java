@@ -106,4 +106,12 @@ public class ExoplaneteService {
 
         return toResponse(exoplanete);
     }
+
+    @Transactional
+    public void delete(Long id) {
+        Exoplanete exoplanete = this.exoplaneteRepository.findById(id)
+                .orElseThrow(() -> new ExoplaneteNotFound("Exoplanete not found"));
+
+        this.exoplaneteRepository.delete(exoplanete);
+    }
 }

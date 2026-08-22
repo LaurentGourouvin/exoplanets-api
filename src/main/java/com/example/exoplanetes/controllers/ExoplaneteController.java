@@ -53,4 +53,10 @@ public class ExoplaneteController {
         ExoplaneteResponse exoplaneteUpdated = this.exoplaneteService.update(id, request);
         return ResponseEntity.ok(exoplaneteUpdated);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        this.exoplaneteService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }
