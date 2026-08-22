@@ -1,9 +1,8 @@
 package com.example.exoplanetes.handlers;
 
-import com.example.exoplanetes.exceptions.ObservatoireNotFound;
+import com.example.exoplanetes.exceptions.NotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
-import org.springframework.lang.Nullable;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -18,13 +17,13 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalHandler extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(ObservatoireNotFound.class)
-    public ProblemDetail ResourceNotFound(Exception e) {
+    @ExceptionHandler(NotFoundException.class)
+    public ProblemDetail resourceNotFound(Exception e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ProblemDetail ConflictDataIntegrity(Exception e) {
+    public ProblemDetail conflictDataIntegrity(Exception e) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, "This resource already exist.");
     }
 
