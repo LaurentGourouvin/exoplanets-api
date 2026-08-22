@@ -9,8 +9,13 @@ import com.example.exoplanetes.exceptions.ExoplaneteNotFound;
 import com.example.exoplanetes.exceptions.ObservatoireNotFound;
 import com.example.exoplanetes.repositories.ExoplaneteRepository;
 import com.example.exoplanetes.repositories.ObservatoireRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Objects;
 
 @Service
 public class ExoplaneteService {
@@ -52,5 +57,20 @@ public class ExoplaneteService {
     public ExoplaneteResponse getById(Long id) {
         Exoplanete exoplanete = this.exoplaneteRepository.findById(id).orElseThrow(() -> new ExoplaneteNotFound("Exoplanete not found with id " + id));
         return toResponse(exoplanete);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ExoplaneteResponse> getList(Long obsId, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Exoplanete> find;
+
+        if (Objects.isNull(obsId)) {
+            find = this.exoplaneteRepository.findAll(pageable);
+        } else {
+            find = this.exoplaneteRepository.findByObservatoireId(obsId, pageable);
+        }
+
+        return find.map(this::toResponse);
     }
 }
