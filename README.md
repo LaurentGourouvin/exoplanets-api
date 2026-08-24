@@ -2,6 +2,8 @@
 
 API REST de gestion d'observatoires astronomiques et d'exoplanètes, construite avec **Java 21** et **Spring Boot 3**. Architecture en couches, persistance via **JPA/Hibernate**, migrations **Flyway**, documentation **OpenAPI/Swagger**.
 
+<center><img src="./img/exo-api-logo.png" width="300"><center/>
+
 > Projet réalisé pour approfondir la maîtrise de Spring Boot et de JPA/Hibernate : mapping de relations, dirty checking, gestion de la concurrence, gestion d'erreur normalisée.
 
 ## Sommaire
