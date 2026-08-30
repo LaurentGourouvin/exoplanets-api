@@ -14,6 +14,7 @@ services:
 
     networks:
       - backend
+      - proxy
 
     labels:
       - "traefik.enable=true"
@@ -29,3 +30,7 @@ networks:
   backend:
     external: true
     name: vps-backend
+
+  proxy:
+    external: true
+    name: vps-proxy
