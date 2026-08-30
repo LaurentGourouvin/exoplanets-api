@@ -1,0 +1,22 @@
+services:
+  exoplanetes-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: exoplanetes-api
+    restart: unless-stopped
+
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/exoplanetes_db
+      SPRING_DATASOURCE_USERNAME: exoplanetes_user
+      SPRING_DATASOURCE_PASSWORD: ${EXOPLANETES_DB_PASSWORD}
+
+    networks:
+      - backend
+
+
+networks:
+  backend:
+    external: true
+    name: vps-backend
